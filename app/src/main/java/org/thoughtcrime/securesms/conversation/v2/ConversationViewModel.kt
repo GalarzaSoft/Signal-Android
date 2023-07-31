@@ -7,6 +7,7 @@ package org.thoughtcrime.securesms.conversation.v2
 
 import android.content.Context
 import android.net.Uri
+import android.os.Build
 import androidx.core.content.pm.ShortcutInfoCompat
 import androidx.lifecycle.ViewModel
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
@@ -31,8 +32,6 @@ import org.thoughtcrime.securesms.components.reminder.Reminder
 import org.thoughtcrime.securesms.contactshare.Contact
 import org.thoughtcrime.securesms.conversation.ConversationMessage
 import org.thoughtcrime.securesms.conversation.ScheduledMessagesRepository
-import org.thoughtcrime.securesms.conversation.colors.GroupAuthorNameColorHelper
-import org.thoughtcrime.securesms.conversation.colors.NameColor
 import org.thoughtcrime.securesms.conversation.mutiselect.MultiselectPart
 import org.thoughtcrime.securesms.conversation.v2.data.ConversationElementKey
 import org.thoughtcrime.securesms.database.DatabaseObserver
@@ -61,10 +60,13 @@ import org.thoughtcrime.securesms.recipients.Recipient
 import org.thoughtcrime.securesms.recipients.RecipientId
 import org.thoughtcrime.securesms.search.MessageResult
 import org.thoughtcrime.securesms.sms.MessageSender
+import org.thoughtcrime.securesms.util.BubbleUtil
+import org.thoughtcrime.securesms.util.ConversationUtil
 import org.thoughtcrime.securesms.util.TextSecurePreferences
 import org.thoughtcrime.securesms.util.hasGiftBadge
 import org.thoughtcrime.securesms.util.rx.RxStore
 import org.thoughtcrime.securesms.wallpaper.ChatWallpaper
+import org.whispersystems.signalservice.api.push.ServiceId
 import java.util.Optional
 import kotlin.time.Duration
 
@@ -81,7 +83,6 @@ class ConversationViewModel(
 ) : ViewModel() {
 
   private val disposables = CompositeDisposable()
-  private val groupAuthorNameColorHelper = GroupAuthorNameColorHelper()
 
   private val scrollButtonStateStore = RxStore(ConversationScrollButtonState()).addTo(disposables)
   val scrollButtonState: Flowable<ConversationScrollButtonState> = scrollButtonStateStore.stateFlowable
@@ -104,10 +105,12 @@ class ConversationViewModel(
 
   val pagingController = ProxyPagingController<ConversationElementKey>()
 
-  val nameColorsMap: Observable<Map<RecipientId, NameColor>> = recipient
-    .filter { it.isGroup }
-    .flatMap { repository.getNameColorsMap(it, groupAuthorNameColorHelper) }
+  val groupMemberServiceIds: Observable<List<ServiceId>> = recipientRepository
+    .groupRecord
+    .filter { it.isPresent && it.get().isV2Group }
+    .map { it.get().requireV2GroupProperties().getMemberServiceIds() }
     .distinctUntilChanged()
+    .observeOn(AndroidSchedulers.mainThread())
 
   @Volatile
   var recipientSnapshot: Recipient? = null
@@ -398,6 +401,12 @@ class ConversationViewModel(
     return repository.getTemporaryViewOnceUri(mmsMessageRecord).observeOn(AndroidSchedulers.mainThread())
   }
 
+  fun canShowAsBubble(context: Context): Observable<Boolean> {
+    return recipient
+      .map { Build.VERSION.SDK_INT >= ConversationUtil.CONVERSATION_SUPPORT_VERSION && BubbleUtil.canBubble(context, it, threadId) }
+      .observeOn(AndroidSchedulers.mainThread())
+  }
+
   fun copyToClipboard(context: Context, messageParts: Set<MultiselectPart>): Maybe<CharSequence> {
     return repository.copyToClipboard(context, messageParts)
   }
@@ -408,7 +417,7 @@ class ConversationViewModel(
 
   fun getRequestReviewState(): Observable<RequestReviewState> {
     return _inputReadyState
-      .flatMapSingle { (recipient, messageRequestState, group) -> repository.getRequestReviewState(recipient, group, messageRequestState) }
+      .flatMapSingle { state -> repository.getRequestReviewState(state.conversationRecipient, state.groupRecord, state.messageRequestState) }
       .distinctUntilChanged()
       .observeOn(AndroidSchedulers.mainThread())
   }

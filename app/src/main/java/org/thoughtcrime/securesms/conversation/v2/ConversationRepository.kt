@@ -18,7 +18,6 @@ import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.core.Completable
 import io.reactivex.rxjava3.core.Flowable
 import io.reactivex.rxjava3.core.Maybe
-import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.core.Single
 import io.reactivex.rxjava3.core.SingleEmitter
 import io.reactivex.rxjava3.schedulers.Schedulers
@@ -45,8 +44,6 @@ import org.thoughtcrime.securesms.contactshare.Contact
 import org.thoughtcrime.securesms.contactshare.ContactUtil
 import org.thoughtcrime.securesms.conversation.ConversationMessage
 import org.thoughtcrime.securesms.conversation.MessageSendType
-import org.thoughtcrime.securesms.conversation.colors.GroupAuthorNameColorHelper
-import org.thoughtcrime.securesms.conversation.colors.NameColor
 import org.thoughtcrime.securesms.conversation.mutiselect.MultiselectPart
 import org.thoughtcrime.securesms.conversation.v2.RequestReviewState.GroupReviewState
 import org.thoughtcrime.securesms.conversation.v2.RequestReviewState.IndividualReviewState
@@ -158,25 +155,6 @@ class ConversationRepository(
         meta = metadata
       )
     }.subscribeOn(Schedulers.io())
-  }
-
-  /**
-   * Generates the name color-map for groups.
-   */
-  fun getNameColorsMap(
-    recipient: Recipient,
-    groupAuthorNameColorHelper: GroupAuthorNameColorHelper
-  ): Observable<Map<RecipientId, NameColor>> {
-    return Recipient.observable(recipient.id)
-      .distinctUntilChanged { a, b -> a.participantIds == b.participantIds }
-      .map {
-        if (it.groupId.isPresent) {
-          groupAuthorNameColorHelper.getColorMap(it.requireGroupId())
-        } else {
-          emptyMap()
-        }
-      }
-      .subscribeOn(Schedulers.io())
   }
 
   fun sendReactionRemoval(messageRecord: MessageRecord, oldRecord: ReactionRecord): Completable {
@@ -329,7 +307,7 @@ class ConversationRepository(
     return Maybe.fromCallable {
       val reminder: Reminder? = when {
         ExpiredBuildReminder.isEligible() -> ExpiredBuildReminder(applicationContext)
-        UnauthorizedReminder.isEligible(applicationContext) -> UnauthorizedReminder(applicationContext)
+        UnauthorizedReminder.isEligible(applicationContext) -> UnauthorizedReminder()
         ServiceOutageReminder.isEligible(applicationContext) -> {
           ApplicationDependencies.getJobManager().add(ServiceOutageDetectionJob())
           ServiceOutageReminder()
@@ -359,8 +337,10 @@ class ConversationRepository(
     return Single.fromCallable {
       val recipients = if (groupRecord == null) {
         listOf(recipient)
-      } else {
+      } else if (groupRecord.isV2Group) {
         groupRecord.requireV2GroupProperties().getMemberRecipients(GroupTable.MemberSet.FULL_MEMBERS_EXCLUDING_SELF)
+      } else {
+        emptyList()
       }
 
       val records = ApplicationDependencies.getProtocolStore().aci().identities().getIdentityRecords(recipients)

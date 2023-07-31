@@ -179,7 +179,7 @@
     <string name="BucketedThreadMedia_This_week">Deze week</string>
     <string name="BucketedThreadMedia_This_month">Deze maand</string>
     <string name="BucketedThreadMedia_Large">Grote bestanden</string>
-    <string name="BucketedThreadMedia_Medium">Middelgroot</string>
+    <string name="BucketedThreadMedia_Medium">Middel</string>
     <string name="BucketedThreadMedia_Small">Kleine bestanden</string>
 
     <!-- CameraFragment -->
@@ -553,7 +553,7 @@
     <string name="ConversationListFragment_archive">Archiveren</string>
     <string name="ConversationListFragment_unarchive">Dearchiveren</string>
     <string name="ConversationListFragment_delete">Verwijderen</string>
-    <string name="ConversationListFragment_select_all">Selecteren</string>
+    <string name="ConversationListFragment_select_all">Alles selecteren</string>
     <plurals name="ConversationListFragment_s_selected">
         <item quantity="one">%1$d geselecteerd</item>
         <item quantity="other">%1$d geselecteerd</item>
@@ -2074,7 +2074,7 @@
     <!-- Displayed in the conversation list when someone reacted to your story -->
     <string name="ThreadRecord__reacted_s_to_your_story">Heeft %1$s op je verhaal gereageerd</string>
     <!-- Displayed in the conversation list when you reacted to someone\'s story -->
-    <string name="ThreadRecord__reacted_s_to_their_story">Hebt %1$s op hun verhaal gereageerd</string>
+    <string name="ThreadRecord__reacted_s_to_their_story">Reageerde met %1$s op een verhaal</string>
     <!-- Displayed in the conversation list when your most recent message is a payment to or from the person the conversation is with -->
     <string name="ThreadRecord_payment">Overschrijving</string>
     <!-- Displayed in the conversation list when your only message in a conversation is a scheduled send. -->
@@ -4993,7 +4993,7 @@
     <!-- Profile status on if it is not the active profile -->
     <string name="NotificationProfileDetails__off">Uitgeschakeld</string>
     <!-- Description of hours for schedule (start to end) times -->
-    <string name="NotificationProfileDetails__s_to_s">%1$s naar %2$s</string>
+    <string name="NotificationProfileDetails__s_to_s">%1$s tot %2$s</string>
     <!-- Section header for exceptions to the notification profile -->
     <string name="NotificationProfileDetails__exceptions">Uitzonderingen</string>
     <!-- Profile exception to allow all calls through the profile restrictions -->
@@ -6034,7 +6034,7 @@
     <!-- Dialog body to clear all call events -->
     <string name="CallLogFragment__this_will_permanently_delete_all_call_history">Hiermee wordt de oproepgeschiedenis voorgoed verwijderd</string>
     <!-- Action bar menu item to delete all call events -->
-    <string name="CallLogFragment__clear_call_history">Wis oproepgeschiedenis</string>
+    <string name="CallLogFragment__clear_call_history">Oproepgeschiedenis wissen</string>
     <!-- Action bar menu item to only display missed calls -->
     <string name="CallLogFragment__filter_missed_calls">Gemiste oproepen filteren</string>
     <!-- Action bar menu item to clear missed call filter -->
